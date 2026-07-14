@@ -33,7 +33,6 @@ func (p *Provider) Send(
 	req model.ProviderRequest,
 ) error {
 	logger := p.loggerWithContext(ctx)
-	// @todo delete. лог для разработки
 	logger.Info(
 		"sending email",
 		slog.Int("user_id", req.UserID),
@@ -50,7 +49,6 @@ func (p *Provider) Send(
 		}
 	}
 
-	// @todo delete. лог для разработки
 	logger.Info(
 		"email sent",
 		slog.Int("user_id", req.UserID),

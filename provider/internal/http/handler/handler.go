@@ -13,6 +13,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+var errMultipleJSON = errors.New("request body must contain only one JSON object")
+
 type Handler struct {
 	validate            *validator.Validate
 	logger              *slog.Logger
@@ -31,7 +33,6 @@ func NewHandler(
 	}
 }
 
-// @todo удалить все writeJSON из метода decodeRequest тк слишком много ответственностей внутри одного метода
 func (h *Handler) decodeRequest(w http.ResponseWriter, r *http.Request) (model.ProviderRequest, error) {
 	var req model.ProviderRequest
 
@@ -43,39 +44,32 @@ func (h *Handler) decodeRequest(w http.ResponseWriter, r *http.Request) (model.P
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&req); err != nil {
-		var maxBytesErr *http.MaxBytesError
-
-		switch {
-		case errors.As(err, &maxBytesErr):
-			errCode := http.StatusRequestEntityTooLarge
-
-			response.WriteJSON(h.logger, w, errCode, model.ErrorResponse{
-				Code:    errCode,
-				Message: "Request body too large",
-			})
-
-		default:
-			errCode := http.StatusBadRequest
-
-			response.WriteJSON(h.logger, w, errCode, model.ErrorResponse{
-				Code:    errCode,
-				Message: "Некорректный JSON",
-			})
-		}
-
 		return model.ProviderRequest{}, err
 	}
 
 	if decoder.Decode(&struct{}{}) != io.EOF {
-		errCode := http.StatusBadRequest
-
-		response.WriteJSON(h.logger, w, errCode, model.ErrorResponse{
-			Code:    errCode,
-			Message: "Разрешен только один объект JSON",
-		})
-
-		return model.ProviderRequest{}, errors.New("request body must contain only one JSON object")
+		return model.ProviderRequest{}, errMultipleJSON
 	}
 
 	return req, nil
+}
+
+func (h *Handler) handleDecodeError(w http.ResponseWriter, err error) {
+	var maxBytesErr *http.MaxBytesError
+
+	switch {
+	case errors.As(err, &maxBytesErr):
+		errCode := http.StatusRequestEntityTooLarge
+
+		response.WriteJSON(h.logger, w, errCode, model.ErrorResponse{
+			Code:    errCode,
+			Message: "Request body too large",
+		})
+
+	case errors.Is(err, errMultipleJSON):
+		response.BadRequest(h.logger, w, "Only one JSON object is allowed")
+
+	default:
+		response.BadRequest(h.logger, w, "Uncorrected JSON")
+	}
 }

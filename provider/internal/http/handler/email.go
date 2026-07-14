@@ -10,7 +10,7 @@ func (h *Handler) email(w http.ResponseWriter, r *http.Request) {
 	req, err := h.decodeRequest(w, r)
 
 	if err != nil {
-		response.BadRequest(h.logger, w, "Uncorrected json")
+		h.handleDecodeError(w, err)
 
 		return
 	}

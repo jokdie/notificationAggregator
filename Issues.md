@@ -1,1 +1,0 @@
-все errors.New переделать на var ErrProviderUnavailable = errors.New(...) + errors.Is(...)
