@@ -1,5 +1,17 @@
 package main
 
+import (
+	"net/http"
+	"os"
+)
+
 func main() {
-	// @todo добавить мидл вар на проверку -> 400 "Неизвестный канал." + 400 "Пустой список каналов." + 400 "Пустое сообщение."
+	port := os.Getenv("PORT")
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {})
+	err := http.ListenAndServe(":"+port, mux)
+	if err != nil {
+		return
+	}
 }

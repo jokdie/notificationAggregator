@@ -1,11 +1,18 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+	"provider/internal/config"
+)
 
-func NewServer(routerApp http.Handler) *http.Server {
+func NewServer(handler http.Handler, cfg *config.Config) *http.Server {
 	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: routerApp,
+		Addr:              cfg.HTTPAddr,
+		Handler:           handler,
+		ReadTimeout:       cfg.ReadTimeout,
+		WriteTimeout:      cfg.WriteTimeout,
+		IdleTimeout:       cfg.IdleTimeout,
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 	}
 
 	return srv

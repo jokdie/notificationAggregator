@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"provider/internal/config"
 	"provider/internal/http/handler"
 	"provider/internal/http/middleware"
 	"provider/internal/provider/email"
@@ -20,7 +21,7 @@ type App struct {
 	logger *slog.Logger
 }
 
-func New(logger *slog.Logger) *App {
+func New(cfg *config.Config, logger *slog.Logger) *App {
 	validate := validator.New()
 
 	emailProvider := email.New(logger)
@@ -34,7 +35,7 @@ func New(logger *slog.Logger) *App {
 	h = middleware.ApplicationJsonMiddleware(logger)(h)
 	h = middleware.RequestIDMiddleware(h)
 
-	serverApp := server.NewServer(h)
+	serverApp := server.NewServer(h, cfg)
 
 	return &App{
 		srv:    serverApp,

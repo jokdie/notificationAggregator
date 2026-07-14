@@ -31,6 +31,7 @@ func NewHandler(
 	}
 }
 
+// @todo удалить все writeJSON из метода decodeRequest тк слишком много ответственностей внутри одного метода
 func (h *Handler) decodeRequest(w http.ResponseWriter, r *http.Request) (model.ProviderRequest, error) {
 	var req model.ProviderRequest
 
@@ -77,28 +78,4 @@ func (h *Handler) decodeRequest(w http.ResponseWriter, r *http.Request) (model.P
 	}
 
 	return req, nil
-	// @todo list
-	// 5) удалить все writeJSON из метода decodeRequest тк слишком много ответственностей внутри одного метода
-	// 6) все errors.New лучше переделать на var ErrProviderUnavailable = errors.New(...) +errors.Is(...)
-	// 7) добавить конфиг env и туда 8080 пихнуть
-	// 8) добавить серверу таймауты ReadTimeout + WriteTimeout + IdleTimeout + ReadHeaderTimeout
-	// 9) структура папок
-	//cmd/
-	//internal/
-	//    app/
-	//    config/
-	//    logger/
-	//    transport/http/
-	//        handler/
-	//        middleware/
-	//        response/
-	//        request/
-	//    service/
-	//    provider/
-	//        email/
-	//        sms/
-	//        push/
-	//    repository/
-	//    model/
-	//    errors/
 }

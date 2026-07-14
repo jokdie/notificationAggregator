@@ -10,13 +10,13 @@ func (h *Handler) email(w http.ResponseWriter, r *http.Request) {
 	req, err := h.decodeRequest(w, r)
 
 	if err != nil {
-		response.BadRequest(h.logger, w)
+		response.BadRequest(h.logger, w, "Uncorrected json")
 
 		return
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		response.BadRequest(h.logger, w)
+		response.BadRequest(h.logger, w, "Validation Error")
 
 		return
 	}

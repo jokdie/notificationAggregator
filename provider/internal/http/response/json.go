@@ -15,9 +15,9 @@ func WriteJSON(logger *slog.Logger, w http.ResponseWriter, status int, data any)
 	}
 }
 
-func BadRequest(logger *slog.Logger, w http.ResponseWriter) {
+func BadRequest(logger *slog.Logger, w http.ResponseWriter, message string) {
 	errCode := http.StatusBadRequest
-	WriteJSON(logger, w, errCode, model.ErrorResponse{Code: errCode, Message: "Некорректный JSON"})
+	WriteJSON(logger, w, errCode, model.ErrorResponse{Code: errCode, Message: message})
 }
 
 func Internal(logger *slog.Logger, w http.ResponseWriter) {
