@@ -6,11 +6,13 @@ import (
 	"log/slog"
 	"net/http"
 	"provider/internal/config"
-	"provider/internal/http/handler"
-	"provider/internal/http/middleware"
+	"provider/internal/model"
+	"provider/internal/provider"
 	"provider/internal/provider/email"
 	"provider/internal/server"
 	"provider/internal/service"
+	"provider/internal/transport/http/handler"
+	"provider/internal/transport/http/middleware"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -21,21 +23,47 @@ type App struct {
 	logger *slog.Logger
 }
 
+func buildProviders(logger *slog.Logger) map[model.Channel]provider.Provider {
+	return map[model.Channel]provider.Provider{
+		model.Email: email.New(logger),
+	}
+}
+
+func buildHTTP(
+	logger *slog.Logger,
+	validate *validator.Validate,
+	notificationService *service.NotificationService,
+) http.Handler {
+	h := handler.NewHandler(
+		validate,
+		logger,
+		notificationService,
+	)
+
+	router := handler.NewRouter(h)
+
+	var result http.Handler = router
+
+	result = middleware.ApplicationJsonMiddleware(logger)(result)
+	result = middleware.Recovery(logger)(result)
+	result = middleware.RequestIDMiddleware(result)
+
+	return result
+}
+
 func New(cfg *config.Config, logger *slog.Logger) *App {
 	validate := validator.New()
 
-	emailProvider := email.New(logger)
-	notificationService := service.NewNotificationService(emailProvider)
+	providers := buildProviders(logger)
+	notificationService := service.NewNotificationService(providers)
 
-	handlerApp := handler.NewHandler(validate, logger, notificationService)
-	routerApp := handler.NewRouter(handlerApp)
+	httpHandler := buildHTTP(
+		logger,
+		validate,
+		notificationService,
+	)
 
-	var h http.Handler = routerApp
-
-	h = middleware.ApplicationJsonMiddleware(logger)(h)
-	h = middleware.RequestIDMiddleware(h)
-
-	serverApp := server.NewServer(h, cfg)
+	serverApp := server.NewServer(httpHandler, cfg)
 
 	return &App{
 		srv:    serverApp,
@@ -61,7 +89,7 @@ func (app *App) Run(ctx context.Context) error {
 	case <-ctx.Done():
 		app.logger.Info("shutdown signal received")
 
-		return app.shutdown(context.Background())
+		return app.shutdown(ctx)
 
 	case err := <-errCh:
 		return err

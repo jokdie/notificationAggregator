@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"log/slog"
 	"net/http"
-	"provider/internal/http/response"
 	"provider/internal/model"
+	"provider/internal/requestid"
+	"provider/internal/transport/http/response"
 )
 
 func (h *Handler) email(w http.ResponseWriter, r *http.Request) {
@@ -14,6 +16,14 @@ func (h *Handler) email(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	h.logger.Info(
+		"notification request",
+		slog.String("request_id", requestid.Get(r.Context())),
+		slog.String("method", r.Method),
+		slog.String("path", r.URL.RequestURI()),
+		slog.Int("user_id", req.UserID),
+	)
 
 	if err := h.validate.Struct(req); err != nil {
 		response.BadRequest(h.logger, w, "Validation Error")

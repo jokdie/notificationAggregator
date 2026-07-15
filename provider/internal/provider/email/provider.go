@@ -24,7 +24,7 @@ func New(logger *slog.Logger) *Provider {
 
 func (p *Provider) loggerWithContext(ctx context.Context) *slog.Logger {
 	return p.logger.With(
-		slog.String("x-guid", requestid.Get(ctx)),
+		slog.String("request_id", requestid.Get(ctx)),
 	)
 }
 

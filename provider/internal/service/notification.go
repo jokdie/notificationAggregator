@@ -14,12 +14,10 @@ type NotificationService struct {
 }
 
 func NewNotificationService(
-	email provider.Provider,
+	providers map[model.Channel]provider.Provider,
 ) *NotificationService {
 	return &NotificationService{
-		providers: map[model.Channel]provider.Provider{
-			model.Email: email,
-		},
+		providers: providers,
 	}
 }
 

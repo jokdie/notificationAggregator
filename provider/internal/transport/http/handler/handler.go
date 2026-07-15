@@ -6,9 +6,9 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"provider/internal/http/response"
 	"provider/internal/model"
 	"provider/internal/service"
+	"provider/internal/transport/http/response"
 
 	"github.com/go-playground/validator/v10"
 )
