@@ -6,11 +6,13 @@ import (
 )
 
 type Config struct {
-	HTTPAddr          string
-	ReadHeaderTimeout time.Duration
-	ReadTimeout       time.Duration
-	WriteTimeout      time.Duration
-	IdleTimeout       time.Duration
+	HTTPAddr              string
+	ReadHeaderTimeout     time.Duration
+	ReadTimeout           time.Duration
+	WriteTimeout          time.Duration
+	IdleTimeout           time.Duration
+	MaxConcurrentRequests int64
+	ProviderURL           string
 }
 
 func Load() *Config {
@@ -21,10 +23,12 @@ func Load() *Config {
 	}
 
 	return &Config{
-		HTTPAddr:          ":" + port,
-		ReadHeaderTimeout: 2 * time.Second,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       60 * time.Second,
+		HTTPAddr:              ":" + port,
+		ReadHeaderTimeout:     2 * time.Second,
+		ReadTimeout:           5 * time.Second,
+		WriteTimeout:          10 * time.Second,
+		IdleTimeout:           60 * time.Second,
+		MaxConcurrentRequests: 5,
+		ProviderURL:           "http://localhost:8080/provider/v1/",
 	}
 }

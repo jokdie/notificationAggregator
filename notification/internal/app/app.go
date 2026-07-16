@@ -5,13 +5,16 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"notification/internal/client/provider"
 	"notification/internal/config"
 	"notification/internal/server"
+	"notification/internal/service"
 	"notification/internal/transport/http/handler"
 	"notification/internal/transport/http/middleware"
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/sync/semaphore"
 )
 
 type App struct {
@@ -22,8 +25,9 @@ type App struct {
 func buildHTTP(
 	logger *slog.Logger,
 	validate *validator.Validate,
+	s *service.Notifications,
 ) http.Handler {
-	h := handler.NewHandler(logger, validate)
+	h := handler.NewHandler(logger, validate, s)
 
 	router := handler.NewRouter(h)
 
@@ -39,9 +43,13 @@ func buildHTTP(
 func New(cfg *config.Config, logger *slog.Logger) *App {
 	validate := validator.New()
 
+	sem := semaphore.NewWeighted(cfg.MaxConcurrentRequests)
+	client := provider.NewClient(sem, logger, cfg.ProviderURL)
+	s := service.NewNotifications(client)
 	httpHandler := buildHTTP(
 		logger,
 		validate,
+		s,
 	)
 
 	serverApp := server.NewServer(httpHandler, cfg)

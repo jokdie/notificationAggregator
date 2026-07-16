@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -14,18 +15,25 @@ import (
 
 var errMultipleJSON = errors.New("request body must contain only one JSON object")
 
+type Service interface {
+	Send(ctx context.Context, req model.NotificationRequest) (model.NotificationResult, error)
+}
+
 type Handler struct {
 	logger   *slog.Logger
 	validate *validator.Validate
+	service  Service
 }
 
 func NewHandler(
 	logger *slog.Logger,
 	validate *validator.Validate,
+	service Service,
 ) *Handler {
 	return &Handler{
 		logger:   logger,
 		validate: validate,
+		service:  service,
 	}
 }
 
