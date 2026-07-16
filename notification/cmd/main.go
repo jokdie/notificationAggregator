@@ -1,17 +1,24 @@
 package main
 
 import (
-	"net/http"
+	"context"
+	"log/slog"
+	"notification/internal/app"
+	"notification/internal/config"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	port := os.Getenv("PORT")
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {})
-	err := http.ListenAndServe(":"+port, mux)
-	if err != nil {
-		return
+	cfg := config.Load()
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	application := app.New(cfg, logger)
+
+	if err := application.Run(ctx); err != nil {
+		logger.Error("application exited", slog.Any("error", err))
 	}
 }
